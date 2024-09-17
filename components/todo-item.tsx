@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -6,19 +7,31 @@ import { cn } from "@/lib/utils";
 import { Todo } from "@/types/custom";
 import { Trash2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
-
+import { TodoOptimisticUpdate } from "./todo-list";
 import { useState } from "react";
 import { deleteTodo, updateTodo } from "@/actions/todo-controller";
 
-export function TodoItem({ todo }: { todo: Todo }) {
+export function TodoItem({
+  todo,
+  optimisticUpdate,
+}: {
+  todo: Todo;
+  optimisticUpdate: TodoOptimisticUpdate;
+}) {
   return (
     <form>
-      <TodoCard todo={todo} />
+      <TodoCard optimisticUpdate={optimisticUpdate} todo={todo} />
     </form>
   );
 }
 
-export function TodoCard({ todo }: { todo: Todo }) {
+export function TodoCard({
+  todo,
+  optimisticUpdate,
+}: {
+  todo: Todo;
+  optimisticUpdate: TodoOptimisticUpdate;
+}) {
   const { pending } = useFormStatus();
   const [checked, setChecked] = useState(todo.is_complete);
   return (
@@ -39,6 +52,7 @@ export function TodoCard({ todo }: { todo: Todo }) {
         <Button
           disabled={pending}
           formAction={async (data) => {
+            optimisticUpdate({ action: "delete", todo });
             await deleteTodo(todo.id);
           }}
           variant="ghost"
