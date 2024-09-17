@@ -1,9 +1,14 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Todo } from "@/types/custom";
 import { Trash2 } from "lucide-react";
+import { useFormStatus } from "react-dom";
+
+import { useState } from "react";
+import { deleteTodo, updateTodo } from "@/actions/todo-controller";
 
 export function TodoItem({ todo }: { todo: Todo }) {
   return (
@@ -14,14 +19,31 @@ export function TodoItem({ todo }: { todo: Todo }) {
 }
 
 export function TodoCard({ todo }: { todo: Todo }) {
+  const { pending } = useFormStatus();
+  const [checked, setChecked] = useState(todo.is_complete);
   return (
-    <Card className={cn("w-full")}>
+    <Card className={cn("w-full", pending && "opacity-50")}>
       <CardContent className="flex items-start gap-3 p-3">
         <span className="size-10 flex items-center justify-center">
-          <Checkbox />
+          <Checkbox
+            disabled={pending}
+            checked={Boolean(checked)}
+            onCheckedChange={async (val) => {
+              if (val === "indeterminate") return;
+              setChecked(val);
+              await updateTodo({ ...todo, is_complete: val });
+            }}
+          />
         </span>
         <p className={cn("flex-1 pt-2 min-w-0 break-words")}>{todo.task}</p>
-        <Button variant="ghost" size="icon">
+        <Button
+          disabled={pending}
+          formAction={async (data) => {
+            await deleteTodo(todo.id);
+          }}
+          variant="ghost"
+          size="icon"
+        >
           <Trash2 className="h-5 w-5" />
           <span className="sr-only">Delete Todo</span>
         </Button>
